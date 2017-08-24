@@ -1,8 +1,30 @@
 from keras.models import Model
-from keras.layers import Input, concatenate, Conv2D, MaxPooling2D, Activation, UpSampling2D, BatchNormalization
+from keras.layers import Input, concatenate, Conv2D, MaxPooling2D, Activation
+from keras.layers import UpSampling2D, BatchNormalization, Dense
 from keras.optimizers import RMSprop
 
 from model.losses import bce_dice_loss, dice_loss
+
+def get_convnet_simple(input_shape=(128, 128, 3),
+                 num_classes=1):
+    print('num__:', num_classes)
+    inputs = Input(shape=input_shape)
+    down1 = Conv2D(64, (3, 3), padding='same')(inputs)
+#    down1 = BatchNormalization()(down1)
+    down1 = Activation('relu')(down1)
+
+    dense1 = Dense(100)(down1)
+    dense2 = Dense(100)(dense1)
+
+    classify = Conv2D(num_classes, (1, 1), activation='sigmoid')(dense2)
+#    classify = Conv2D(num_classes, (1, 1), activation='sigmoid')(down1)
+
+    model = Model(inputs=inputs, outputs=classify)
+#    model = Model(inputs=inputs, outputs = dense2)
+
+    model.compile(optimizer=RMSprop(lr=0.0001), loss=bce_dice_loss, metrics=[dice_loss])
+
+    return model
 
 
 def get_unet_128(input_shape=(128, 128, 3),

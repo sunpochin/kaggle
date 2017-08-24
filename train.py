@@ -3,15 +3,17 @@ import numpy as np
 import pandas as pd
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, TensorBoard
 from sklearn.model_selection import train_test_split
-
+from keras.callbacks import CSVLogger
 import params
 
+# use downsample for faster modeling, but not accurate.
+downsample = params.downsample  
 input_size = params.input_size
 epochs = params.max_epochs
 batch_size = params.batch_size
 model = params.model
 
-df_train = pd.read_csv('input/train_masks.csv')
+df_train = pd.read_csv('../input/train_masks.csv')
 ids_train = df_train['img'].map(lambda s: s.split('.')[0])
 
 ids_train_split, ids_valid_split = train_test_split(ids_train, test_size=0.2, random_state=42)
@@ -93,9 +95,9 @@ def train_generator():
             end = min(start + batch_size, len(ids_train_split))
             ids_train_batch = ids_train_split[start:end]
             for id in ids_train_batch.values:
-                img = cv2.imread('input/train/{}.jpg'.format(id))
+                img = cv2.imread('../input/train/{}.jpg'.format(id))
                 img = cv2.resize(img, (input_size, input_size))
-                mask = cv2.imread('input/train_masks/{}_mask.png'.format(id), cv2.IMREAD_GRAYSCALE)
+                mask = cv2.imread('../input/train_masks/{}_mask.png'.format(id), cv2.IMREAD_GRAYSCALE)
                 mask = cv2.resize(mask, (input_size, input_size))
                 img = randomHueSaturationValue(img,
                                                hue_shift_limit=(-50, 50),
@@ -122,9 +124,9 @@ def valid_generator():
             end = min(start + batch_size, len(ids_valid_split))
             ids_valid_batch = ids_valid_split[start:end]
             for id in ids_valid_batch.values:
-                img = cv2.imread('input/train/{}.jpg'.format(id))
+                img = cv2.imread('../input/train/{}.jpg'.format(id))
                 img = cv2.resize(img, (input_size, input_size))
-                mask = cv2.imread('input/train_masks/{}_mask.png'.format(id), cv2.IMREAD_GRAYSCALE)
+                mask = cv2.imread('../input/train_masks/{}_mask.png'.format(id), cv2.IMREAD_GRAYSCALE)
                 mask = cv2.resize(mask, (input_size, input_size))
                 mask = np.expand_dims(mask, axis=2)
                 x_batch.append(img)
@@ -150,12 +152,29 @@ callbacks = [EarlyStopping(monitor='val_dice_loss',
                              save_best_only=True,
                              save_weights_only=True,
                              mode='max'),
-             TensorBoard(log_dir='logs')]
+             TensorBoard(log_dir='logs'),
+             CSVLogger('log.csv', append=True, separator=';') ]
+import time
+time_start = time.time()
 
-model.fit_generator(generator=train_generator(),
-                    steps_per_epoch=np.ceil(float(len(ids_train_split)) / float(batch_size)),
+loss_history = model.fit_generator(generator=train_generator(),
+                    steps_per_epoch=np.ceil(float(len(ids_train_split)) / float(batch_size) / downsample),
                     epochs=epochs,
                     verbose=2,
                     callbacks=callbacks,
                     validation_data=valid_generator(),
-                    validation_steps=np.ceil(float(len(ids_valid_split)) / float(batch_size)))
+                    validation_steps=np.ceil(float(len(ids_valid_split)) / float(batch_size)) / downsample)
+
+time_elapsed = time.time() - time_start
+print('time elapsed:', time_elapsed)
+
+print(loss_history.history.keys())
+import matplotlib.pyplot as plt 
+# summarize history for loss
+plt.plot(loss_history.history['loss'])
+plt.plot(loss_history.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['loss', 'val_loss'], loc='upper left')
+plt.show()
