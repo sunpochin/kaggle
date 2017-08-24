@@ -6,8 +6,9 @@ downsample = 1
 #input_size = 128
 input_size = 1024
 
-max_epochs = 25
-batch_size = 16
+max_epochs = 50
+#batch_size = 16
+batch_size = 3
 
 orig_width = 1918
 orig_height = 1280
