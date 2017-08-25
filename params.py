@@ -4,7 +4,9 @@ from model.u_net import get_convnet_simple, get_unet_1918_1280
 # use larger downsample for faster modeling, but not accurate.
 downsample = 1
 #input_size = 128
-input_size = 1024
+#input_size = 1024
+# 0 meaning NO resize.
+input_size = 0
 
 max_epochs = 50
 #batch_size = 16

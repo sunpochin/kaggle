@@ -8,8 +8,7 @@ import params
 
 # use downsample for faster modeling, but not accurate.
 downsample = params.downsample  
-#input_size = params.input_size
-input_size = 0
+input_size = params.input_size
 
 epochs = params.max_epochs
 batch_size = params.batch_size
