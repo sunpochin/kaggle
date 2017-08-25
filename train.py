@@ -8,7 +8,7 @@ import params
 
 # use downsample for faster modeling, but not accurate.
 downsample = params.downsample  
-input_size = params.input_size
+#input_size = params.input_size
 epochs = params.max_epochs
 batch_size = params.batch_size
 model = params.model
@@ -96,9 +96,9 @@ def train_generator():
             ids_train_batch = ids_train_split[start:end]
             for id in ids_train_batch.values:
                 img = cv2.imread('../input/train/{}.jpg'.format(id))
-                img = cv2.resize(img, (input_size, input_size))
+#                img = cv2.resize(img, (input_size, input_size))
                 mask = cv2.imread('../input/train_masks/{}_mask.png'.format(id), cv2.IMREAD_GRAYSCALE)
-                mask = cv2.resize(mask, (input_size, input_size))
+#                mask = cv2.resize(mask, (input_size, input_size))
                 img = randomHueSaturationValue(img,
                                                hue_shift_limit=(-50, 50),
                                                sat_shift_limit=(-5, 5),
@@ -125,9 +125,9 @@ def valid_generator():
             ids_valid_batch = ids_valid_split[start:end]
             for id in ids_valid_batch.values:
                 img = cv2.imread('../input/train/{}.jpg'.format(id))
-                img = cv2.resize(img, (input_size, input_size))
+#                img = cv2.resize(img, (input_size, input_size))
                 mask = cv2.imread('../input/train_masks/{}_mask.png'.format(id), cv2.IMREAD_GRAYSCALE)
-                mask = cv2.resize(mask, (input_size, input_size))
+#                mask = cv2.resize(mask, (input_size, input_size))
                 mask = np.expand_dims(mask, axis=2)
                 x_batch.append(img)
                 y_batch.append(mask)
